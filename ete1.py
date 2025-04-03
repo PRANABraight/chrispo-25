@@ -1,7 +1,7 @@
 import streamlit as st  
 import pandas as pd
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import plotly.express as px
 from wordcloud import WordCloud
 from textblob import TextBlob
@@ -90,37 +90,11 @@ def create_word_cloud(filtered_data):
                                          filtered_data['Sport'].unique())
     sport_feedback = filtered_data[filtered_data['Sport'] == selected_sport_feedback]['Feedback']
     if len(sport_feedback) > 0:
-        # Create word frequency dictionary
-        text = ' '.join(sport_feedback)
-        words = text.split()
-        word_freq = {}
-        for word in words:
-            word = word.lower()
-            if word not in word_freq:
-                word_freq[word] = 1
-            else:
-                word_freq[word] += 1
-        
-        # Convert to dataframe for plotly
-        word_df = pd.DataFrame(list(word_freq.items()), columns=['word', 'count'])
-        word_df = word_df.sort_values('count', ascending=False).head(50)
-        
-        # Create scatter plot with size based on word frequency
-        fig = px.scatter(word_df, 
-                        x=np.random.rand(len(word_df)),  # Random x positions
-                        y=np.random.rand(len(word_df)),  # Random y positions
-                        size='count',
-                        text='word',
-                        size_max=60,
-                        title=f'Word Cloud for {selected_sport_feedback}')
-        
-        fig.update_traces(textposition='top center')
-        fig.update_layout(
-            showlegend=False,
-            xaxis={'showgrid': False, 'zeroline': False, 'visible': False},
-            yaxis={'showgrid': False, 'zeroline': False, 'visible': False}
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(' '.join(sport_feedback))
+        plt.figure(figsize=(10, 5))
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis('off')
+        st.pyplot(plt)
 
 def analyze_sentiment(filtered_data):
     st.subheader("Feedback Sentiment by Sport")
