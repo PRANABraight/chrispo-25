@@ -1,6 +1,8 @@
 import streamlit as st  
 import pandas as pd
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')  # Add this line before importing pyplot
 import matplotlib.pyplot as plt
 import plotly.express as px
 from wordcloud import WordCloud
@@ -378,8 +380,6 @@ def fetch_sports_images(sport, count=6):
         ],
         'Volleyball': [
             ('https://source.unsplash.com/800x600/?volleyball-game', 'Volleyball Match'),
-            ('https://source.unsplash.com/800x600/?volleyball-court', 'Volleyball Court'),
-            ('https://source.unsplash.com/800x600/?volleyball', 'Volleyball'),
         ],
         'Athletics': [
             ('https://source.unsplash.com/800x600/?running-track', 'Athletics Track'),
