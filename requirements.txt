@@ -6,4 +6,4 @@ plotly>=5.17.0
 wordcloud>=1.9.0
 textblob>=0.17.1
 Pillow>=10.0.0
-opencv-python>=4.8.0
+opencv-python-headless>=4.8.0

@@ -10,7 +10,13 @@ import io
 import base64
 import requests
 from io import BytesIO
-import cv2
+
+try:
+    import cv2
+except ImportError:
+    import warnings
+    warnings.warn("OpenCV not available, some image processing features will be limited")
+    cv2 = None
 
 def init_page():
     st.set_page_config(page_title="CHRISPO '25 Analysis", layout="wide")
@@ -198,6 +204,10 @@ def process_image_advanced(image, operations=None):
     img = Image.open(image)
     img_array = np.array(img)
     
+    if cv2 is None:
+        st.warning("OpenCV is not available. Some image processing features are disabled.")
+        return img
+    
     # Convert to RGB if needed
     if len(img_array.shape) == 2:
         img_array = cv2.cvtColor(img_array, cv2.COLOR_GRAY2RGB)
@@ -205,28 +215,32 @@ def process_image_advanced(image, operations=None):
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGBA2RGB)
     
     processed = None
-    if operations:
-        for op, params in operations.items():
-            if op == 'edge_detection':
-                gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-                processed = cv2.Canny(gray, params['threshold1'], params['threshold2'])
-                processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2RGB)
-            elif op == 'blur':
-                processed = cv2.GaussianBlur(img_array, (params['kernel'], params['kernel']), 0)
-            elif op == 'cartoon':
-                gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-                edges = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, 
-                                           cv2.THRESH_BINARY, 9, 9)
-                color = cv2.bilateralFilter(img_array, params['d'], 300, 300)
-                processed = cv2.bitwise_and(color, color, mask=edges)
-            elif op == 'rotate':
-                processed = Image.fromarray(img_array).rotate(params['angle'])
-                processed = np.array(processed)
-            elif op == 'watermark':
-                processed = Image.fromarray(img_array)
-                draw = ImageDraw.Draw(processed)
-                draw.text((10, 10), params['text'], fill='white')
-                processed = np.array(processed)
+    try:
+        if operations:
+            for op, params in operations.items():
+                if op == 'edge_detection':
+                    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+                    processed = cv2.Canny(gray, params['threshold1'], params['threshold2'])
+                    processed = cv2.cvtColor(processed, cv2.COLOR_GRAY2RGB)
+                elif op == 'blur':
+                    processed = cv2.GaussianBlur(img_array, (params['kernel'], params['kernel']), 0)
+                elif op == 'cartoon':
+                    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+                    edges = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, 
+                                               cv2.THRESH_BINARY, 9, 9)
+                    color = cv2.bilateralFilter(img_array, params['d'], 300, 300)
+                    processed = cv2.bitwise_and(color, color, mask=edges)
+                elif op == 'rotate':
+                    processed = Image.fromarray(img_array).rotate(params['angle'])
+                    processed = np.array(processed)
+                elif op == 'watermark':
+                    processed = Image.fromarray(img_array)
+                    draw = ImageDraw.Draw(processed)
+                    draw.text((10, 10), params['text'], fill='white')
+                    processed = np.array(processed)
+    except Exception as e:
+        st.error(f"Image processing error: {str(e)}")
+        return img
     
     return Image.fromarray(processed if processed is not None else img_array)
 
